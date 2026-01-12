@@ -10,6 +10,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import com.pranathi.taskmanager.dto.TaskCreateRequest;
 
+import java.util.List;
+
 
 @RestController
 @RequestMapping("/tasks")
@@ -33,4 +35,9 @@ public class TaskController {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body("Task created successfully");
     }
+    @GetMapping
+    public ResponseEntity<List<TaskCreateRequest>> getAllTasks() {
+        return ResponseEntity.ok(taskService.getAllTasks());
+    }
+
 }
