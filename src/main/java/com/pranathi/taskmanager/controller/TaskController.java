@@ -1,6 +1,7 @@
 package com.pranathi.taskmanager.controller;
 
 import com.pranathi.taskmanager.service.TaskService;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.HttpStatus;
@@ -21,7 +22,7 @@ public class TaskController {
 
     @PostMapping
     public ResponseEntity<String> createTask(
-            @RequestBody TaskCreateRequest request) {
+            @Valid @RequestBody TaskCreateRequest request) {
 
         taskService.createTask(
                 request.getTitle(),
