@@ -13,6 +13,10 @@ public class TaskService {
     private final List<TaskCreateRequest> tasks = new ArrayList<>();
 
     public void createTask(String title, String description) {
+        if (title == null || title.isBlank()) {
+            throw new IllegalArgumentException("Task title cannot be empty");
+        }
+
         TaskCreateRequest task = new TaskCreateRequest();
         task.setTitle(title);
         task.setDescription(description);
