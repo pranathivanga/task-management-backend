@@ -1,5 +1,7 @@
 package com.pranathi.taskmanager.controller;
 
+import com.pranathi.taskmanager.dto.ApiResponse;
+import com.pranathi.taskmanager.dto.TaskResponse;
 import com.pranathi.taskmanager.service.TaskService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
@@ -21,7 +23,7 @@ public class TaskController {
     }
 
     @PostMapping
-    public ResponseEntity<String> createTask(
+    public ResponseEntity<ApiResponse> createTask(
             @Valid @RequestBody TaskCreateRequest request) {
 
         taskService.createTask(
@@ -30,12 +32,24 @@ public class TaskController {
         );
 
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body("Task created successfully");
+                .body(new ApiResponse("Task created successfully"));
+
     }
     @GetMapping
-    public ResponseEntity<List<TaskCreateRequest>> getAllTasks() {
-        return ResponseEntity.ok(taskService.getAllTasks());
-    }
+    public ResponseEntity<List<TaskResponse>> getAllTasks() {
 
+        List<TaskResponse> response = taskService.getAllTasks()
+                .stream()
+                .map(task -> {
+                    TaskResponse dto = new TaskResponse();
+                    dto.setId(task.getId());
+                    dto.setTitle(task.getTitle());
+                    dto.setDescription(task.getDescription());
+                    return dto;
+                })
+                .toList();
+
+        return ResponseEntity.ok(response);
+    }
 
 }
