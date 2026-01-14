@@ -44,9 +44,9 @@ public class TaskController {
 
     }
     @GetMapping
-    public ResponseEntity<Page<TaskResponse>> getAllTasks(@PageableDefault(size = 5) Pageable pageable) {
+    public ResponseEntity<Page<TaskResponse>> getAllTasks(@RequestParam(required = false) String keyword,@PageableDefault(size = 5) Pageable pageable) {
 
-        Page<Task> taskPage = taskService.getAllTasks(pageable);
+        Page<Task> taskPage = taskService.getAllTasks(keyword,pageable);
 
         Page<TaskResponse> responsePage = taskPage.map(task -> {
             TaskResponse dto = new TaskResponse();

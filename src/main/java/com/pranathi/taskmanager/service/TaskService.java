@@ -33,8 +33,10 @@ public class TaskService {
         taskRepository.save(task);
     }
 
-    public Page<Task> getAllTasks(Pageable pageable) {
-
-        return taskRepository.findAll(pageable);
+    public Page<Task> getAllTasks(String keyword,Pageable pageable) {
+        if (keyword == null || keyword.isBlank()) {
+            return taskRepository.findAll(pageable);
+        }
+        return taskRepository.findByTitleContainingIgnoreCase(keyword, pageable);
     }
 }
