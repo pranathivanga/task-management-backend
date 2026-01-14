@@ -2,10 +2,14 @@ package com.pranathi.taskmanager.controller;
 
 import com.pranathi.taskmanager.dto.ApiResponse;
 import com.pranathi.taskmanager.dto.TaskResponse;
+import com.pranathi.taskmanager.entity.Task;
 import com.pranathi.taskmanager.service.TaskService;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.HttpStatus;
@@ -40,20 +44,19 @@ public class TaskController {
 
     }
     @GetMapping
-    public ResponseEntity<List<TaskResponse>> getAllTasks() {
+    public ResponseEntity<Page<TaskResponse>> getAllTasks(@PageableDefault(size = 5) Pageable pageable) {
 
-        List<TaskResponse> response = taskService.getAllTasks()
-                .stream()
-                .map(task -> {
-                    TaskResponse dto = new TaskResponse();
-                    dto.setId(task.getId());
-                    dto.setTitle(task.getTitle());
-                    dto.setDescription(task.getDescription());
-                    return dto;
-                })
-                .toList();
+        Page<Task> taskPage = taskService.getAllTasks(pageable);
 
-        return ResponseEntity.ok(response);
+        Page<TaskResponse> responsePage = taskPage.map(task -> {
+            TaskResponse dto = new TaskResponse();
+            dto.setId(task.getId());
+            dto.setTitle(task.getTitle());
+            dto.setDescription(task.getDescription());
+            return dto;
+        });
+
+        return ResponseEntity.ok(responsePage);
     }
 
 }
