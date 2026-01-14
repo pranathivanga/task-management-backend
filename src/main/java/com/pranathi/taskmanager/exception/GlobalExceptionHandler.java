@@ -1,51 +1,54 @@
 package com.pranathi.taskmanager.exception;
 
+import com.pranathi.taskmanager.dto.ErrorResponse;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import java.util.HashMap;
-import java.util.Map;
-
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    // 1️⃣ Business logic errors (YOUR exceptions)
-    @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<Map<String, String>> handleIllegalArgument(
-            IllegalArgumentException ex) {
-
-        Map<String, String> error = new HashMap<>();
-        error.put("message", ex.getMessage());
-
-        return ResponseEntity
-                .badRequest()
-                .body(error);
-    }
-
-    // 2️⃣ Bad / unreadable request body (SPRING exceptions)
-    @ExceptionHandler(HttpMessageNotReadableException.class)
-    public ResponseEntity<Map<String, String>> handleBadRequestBody() {
-
-        Map<String, String> error = new HashMap<>();
-        error.put("message", "Invalid or missing request body");
-
-        return ResponseEntity
-                .badRequest()
-                .body(error);
-    }
+    // 1️⃣ Validation errors (@Valid)
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<Map<String, String>> handleValidationErrors(
+    public ResponseEntity<ErrorResponse> handleValidationErrors(
             MethodArgumentNotValidException ex) {
 
-        Map<String, String> errors = new HashMap<>();
+        String errorMessage =
+                ex.getBindingResult()
+                        .getFieldError()
+                        .getDefaultMessage();
 
-        ex.getBindingResult().getFieldErrors().forEach(error ->
-                errors.put(error.getField(), error.getDefaultMessage())
-        );
+        ErrorResponse error =
+                new ErrorResponse(errorMessage, HttpStatus.BAD_REQUEST.value());
 
-        return ResponseEntity.badRequest().body(errors);
+        return ResponseEntity.badRequest().body(error);
+    }
+
+    // 2️⃣ Business logic errors
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ErrorResponse> handleIllegalArgument(
+            IllegalArgumentException ex) {
+
+        ErrorResponse error =
+                new ErrorResponse(ex.getMessage(), HttpStatus.BAD_REQUEST.value());
+
+        return ResponseEntity.badRequest().body(error);
+    }
+
+    // 3️⃣ Fallback (unexpected errors)
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ErrorResponse> handleGeneric(Exception ex) {
+
+        ErrorResponse error =
+                new ErrorResponse(
+                        "Something went wrong",
+                        HttpStatus.INTERNAL_SERVER_ERROR.value()
+                );
+
+        return ResponseEntity
+                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(error);
     }
 }
