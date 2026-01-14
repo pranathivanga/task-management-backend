@@ -4,6 +4,8 @@ import com.pranathi.taskmanager.dto.ApiResponse;
 import com.pranathi.taskmanager.dto.TaskResponse;
 import com.pranathi.taskmanager.service.TaskService;
 import jakarta.validation.Valid;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.HttpStatus;
@@ -15,7 +17,8 @@ import java.util.List;
 @RestController
 @RequestMapping("/tasks")
 public class TaskController {
-
+    private static final Logger logger =
+            LoggerFactory.getLogger(TaskController.class);
     private final TaskService taskService;
 
     public TaskController(TaskService taskService) {
@@ -25,6 +28,7 @@ public class TaskController {
     @PostMapping
     public ResponseEntity<ApiResponse> createTask(
             @Valid @RequestBody TaskCreateRequest request) {
+        logger.info("Received request to create task");
 
         taskService.createTask(
                 request.getTitle(),
