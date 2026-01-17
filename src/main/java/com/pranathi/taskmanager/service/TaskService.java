@@ -2,6 +2,7 @@ package com.pranathi.taskmanager.service;
 
 import com.pranathi.taskmanager.entity.Task;
 import com.pranathi.taskmanager.entity.User;
+import com.pranathi.taskmanager.exception.ResourceNotFoundException;
 import com.pranathi.taskmanager.repository.TaskRepository;
 import com.pranathi.taskmanager.repository.UserRepository;
 import org.slf4j.Logger;
@@ -32,7 +33,7 @@ public class TaskService {
         logger.info("Creating task with title: {} for user {}", title, userId);
 
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         Task task = new Task();
         task.setTitle(title);
@@ -49,4 +50,26 @@ public class TaskService {
         }
         return taskRepository.findByTitleContainingIgnoreCase(keyword, pageable);
     }
+    public Task updateTask(Long taskId, String status, String description) {
+
+        Task task = taskRepository.findById(taskId)
+                .orElseThrow(() -> new ResourceNotFoundException("Task not found"));
+
+        task.setStatus(status);
+
+        if (description != null) {
+            task.setDescription(description);
+        }
+
+        return taskRepository.save(task);
+    }
+    public void deleteTask(Long taskId) {
+
+        Task task = taskRepository.findById(taskId)
+                .orElseThrow(() -> new ResourceNotFoundException("Task not found"));
+
+        taskRepository.delete(task);
+    }
+
+
 }

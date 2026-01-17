@@ -1,5 +1,6 @@
 package com.pranathi.taskmanager.exception;
 
+import com.pranathi.taskmanager.dto.ApiResponse;
 import com.pranathi.taskmanager.dto.ErrorResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,20 +15,26 @@ public class GlobalExceptionHandler {
     private static final Logger logger =
             LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ResponseEntity<ApiResponse> handleNotFound(ResourceNotFoundException ex) {
+        return ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
+                .body(new ApiResponse(ex.getMessage()));
+    }
+
     // 1️⃣ Validation errors (@Valid)
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ErrorResponse> handleValidationErrors(
-            MethodArgumentNotValidException ex) {
+    public ResponseEntity<ApiResponse> handleValidation(MethodArgumentNotValidException ex) {
 
-        String errorMessage =
+        String error =
                 ex.getBindingResult()
-                        .getFieldError()
+                        .getFieldErrors()
+                        .get(0)
                         .getDefaultMessage();
 
-        ErrorResponse error =
-                new ErrorResponse(errorMessage, HttpStatus.BAD_REQUEST.value());
-
-        return ResponseEntity.badRequest().body(error);
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(new ApiResponse(error));
     }
 
     // 2️⃣ Business logic errors

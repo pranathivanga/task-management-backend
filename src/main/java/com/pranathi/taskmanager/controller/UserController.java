@@ -30,7 +30,7 @@ public class UserController {
         userService.createUser(user);
 
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(new ApiResponse("User created successfully"));
+                .body(new ApiResponse<>("User created successfully"));
     }
 
 

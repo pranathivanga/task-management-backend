@@ -2,6 +2,7 @@ package com.pranathi.taskmanager.controller;
 
 import com.pranathi.taskmanager.dto.ApiResponse;
 import com.pranathi.taskmanager.dto.TaskResponse;
+import com.pranathi.taskmanager.dto.TaskUpdateRequest;
 import com.pranathi.taskmanager.entity.Task;
 import com.pranathi.taskmanager.service.TaskService;
 import jakarta.validation.Valid;
@@ -42,7 +43,7 @@ public class TaskController {
         );
 
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(new ApiResponse("Task created successfully"));
+                .body(new ApiResponse<>("Task created successfully"));
     }
     @GetMapping
     public ResponseEntity<Page<TaskResponse>> getAllTasks(@RequestParam(required = false) String keyword,@PageableDefault(size = 5) Pageable pageable) {
@@ -59,5 +60,22 @@ public class TaskController {
 
         return ResponseEntity.ok(responsePage);
     }
+    @PutMapping("/{id}")
+    public ResponseEntity<ApiResponse> updateTask(
+            @PathVariable Long id,
+            @Valid @RequestBody TaskUpdateRequest request) {
+
+        taskService.updateTask(id, request.getStatus(), request.getDescription());
+
+        return ResponseEntity.ok(new ApiResponse<>("Task updated successfully"));
+    }
+    @DeleteMapping("/{id}")
+    public ResponseEntity<ApiResponse> deleteTask(@PathVariable Long id) {
+
+        taskService.deleteTask(id);
+
+        return ResponseEntity.ok(new ApiResponse<>("Task deleted successfully"));
+    }
+
 
 }
