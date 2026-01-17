@@ -1,6 +1,7 @@
 package com.pranathi.taskmanager.dto;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
 public class TaskCreateRequest {
@@ -11,6 +12,9 @@ public class TaskCreateRequest {
 
     @Size(max = 500, message = "Description cannot exceed 500 characters")
     private String description;
+
+    @NotNull(message = "User id is required")
+    private Long userId;
 
     public String getTitle() {
         return title;
@@ -26,5 +30,13 @@ public class TaskCreateRequest {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public Long getUserId() {
+        return userId;
+    }
+
+    public void setUserId(Long userId) {
+        this.userId = userId;
     }
 }

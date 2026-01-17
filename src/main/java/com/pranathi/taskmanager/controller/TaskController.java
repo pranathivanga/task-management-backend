@@ -32,16 +32,17 @@ public class TaskController {
     @PostMapping
     public ResponseEntity<ApiResponse> createTask(
             @Valid @RequestBody TaskCreateRequest request) {
-        logger.info("Received request to create task");
+
+        logger.info("Received request to create task for user {}", request.getUserId());
 
         taskService.createTask(
                 request.getTitle(),
-                request.getDescription()
+                request.getDescription(),
+                request.getUserId()
         );
 
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(new ApiResponse("Task created successfully"));
-
     }
     @GetMapping
     public ResponseEntity<Page<TaskResponse>> getAllTasks(@RequestParam(required = false) String keyword,@PageableDefault(size = 5) Pageable pageable) {
