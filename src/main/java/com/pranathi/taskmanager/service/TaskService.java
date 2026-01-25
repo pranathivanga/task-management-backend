@@ -28,28 +28,57 @@ public class TaskService {
         this.userRepository = userRepository;
     }
 
-    public Task createTask(String title, String description, Long userId) {
-
-        logger.info("Creating task with title: {} for user {}", title, userId);
-
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+    public void createTask(String title, String description, String status, Long userId) {
 
         Task task = new Task();
         task.setTitle(title);
         task.setDescription(description);
-        task.setStatus("PENDING");
+        task.setStatus(status);
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
         task.setUser(user);
 
-        return taskRepository.save(task);
+        taskRepository.save(task);
     }
 
-    public Page<Task> getAllTasks(String keyword, Pageable pageable) {
-        if (keyword == null || keyword.isBlank()) {
-            return taskRepository.findAll(pageable);
+    public Page<Task> getAllTasks(
+            String keyword,
+            String status,
+            Long userId,
+            Pageable pageable) {
+
+        boolean hasKeyword = keyword != null && !keyword.isBlank();
+        boolean hasStatus = status != null && !status.isBlank();
+        boolean hasUser = userId != null;
+
+        // All three filters
+        if (hasKeyword && hasStatus && hasUser) {
+            return taskRepository
+                    .findByTitleContainingIgnoreCaseAndStatusAndUser_Id(
+                            keyword, status, userId, pageable);
         }
-        return taskRepository.findByTitleContainingIgnoreCase(keyword, pageable);
+
+        // Keyword only
+        if (hasKeyword) {
+            return taskRepository.findByTitleContainingIgnoreCase(keyword, pageable);
+        }
+
+        // Status only
+        if (hasStatus) {
+            return taskRepository.findByStatus(status, pageable);
+        }
+
+        // User only
+        if (hasUser) {
+            return taskRepository.findByUser_Id(userId, pageable);
+        }
+
+        // No filters
+        return taskRepository.findAll(pageable);
     }
+
     public Task updateTask(Long taskId, String status, String description) {
 
         Task task = taskRepository.findById(taskId)
@@ -70,6 +99,8 @@ public class TaskService {
 
         taskRepository.delete(task);
     }
-
+    public List<Task> getTasksWithUser(Long userId) {
+        return taskRepository.findTasksWithUser(userId);
+    }
 
 }

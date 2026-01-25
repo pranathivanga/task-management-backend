@@ -10,6 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -39,6 +40,7 @@ public class TaskController {
         taskService.createTask(
                 request.getTitle(),
                 request.getDescription(),
+                request.getStatus(),
                 request.getUserId()
         );
 
@@ -46,20 +48,22 @@ public class TaskController {
                 .body(new ApiResponse<>("Task created successfully"));
     }
     @GetMapping
-    public ResponseEntity<Page<TaskResponse>> getAllTasks(@RequestParam(required = false) String keyword,@PageableDefault(size = 5) Pageable pageable) {
+    public ResponseEntity<ApiResponse> getAllTasks(
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) Long userId,
+            @PageableDefault(size = 5, sort = "createdAt", direction = Sort.Direction.DESC)
+            Pageable pageable) {
 
-        Page<Task> taskPage = taskService.getAllTasks(keyword,pageable);
-
-        Page<TaskResponse> responsePage = taskPage.map(task -> {
-            TaskResponse dto = new TaskResponse();
-            dto.setId(task.getId());
-            dto.setTitle(task.getTitle());
-            dto.setDescription(task.getDescription());
-            return dto;
-        });
-
-        return ResponseEntity.ok(responsePage);
+        return ResponseEntity.ok(
+                new ApiResponse<>(
+                        "Tasks fetched",
+                        taskService.getAllTasks(keyword, status, userId, pageable)
+                )
+        );
     }
+
+
     @PutMapping("/{id}")
     public ResponseEntity<ApiResponse> updateTask(
             @PathVariable Long id,
@@ -76,6 +80,13 @@ public class TaskController {
 
         return ResponseEntity.ok(new ApiResponse<>("Task deleted successfully"));
     }
+    @GetMapping("/users/{userId}/tasks-with-user")
+    public ResponseEntity<ApiResponse> getTasksWithUser(@PathVariable Long userId) {
 
+        return ResponseEntity.ok(
+                new ApiResponse<>("Tasks with user info",
+                        taskService.getTasksWithUser(userId))
+        );
+    }
 
 }

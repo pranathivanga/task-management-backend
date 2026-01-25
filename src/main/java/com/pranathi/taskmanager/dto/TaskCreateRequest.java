@@ -13,7 +13,10 @@ public class TaskCreateRequest {
     @Size(max = 500, message = "Description cannot exceed 500 characters")
     private String description;
 
-    @NotNull(message = "User id is required")
+    @NotBlank(message = "Status cannot be empty")
+    private String status;
+
+    @NotNull(message = "User ID is required")
     private Long userId;
 
     public String getTitle() {
@@ -30,6 +33,14 @@ public class TaskCreateRequest {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
     }
 
     public Long getUserId() {
