@@ -13,16 +13,16 @@ import java.util.List;
 @Repository
 public interface TaskRepository extends JpaRepository<Task, Long> {
 
-    // Keyword search (pagination)
+    // Keyword filter
     Page<Task> findByTitleContainingIgnoreCase(String keyword, Pageable pageable);
 
-    // Filter by status (pagination)
+    // Status filter
     Page<Task> findByStatus(String status, Pageable pageable);
 
-    // Filter by user (pagination)
+    // User filter
     Page<Task> findByUser_Id(Long userId, Pageable pageable);
 
-    // Combined filters: keyword + status + user
+    // Combined filters
     Page<Task> findByTitleContainingIgnoreCaseAndStatusAndUser_Id(
             String title,
             String status,
@@ -30,11 +30,21 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
             Pageable pageable
     );
 
-    // JOIN + FETCH user for Day 15
+    // Day 15 — Fetch tasks with user for specific user
     @Query("""
-           SELECT t FROM Task t
-           JOIN FETCH t.user u
-           WHERE u.id = :userId
-           """)
+       SELECT t FROM Task t
+       JOIN FETCH t.user u
+       WHERE u.id = :userId
+       """)
     List<Task> findTasksWithUser(@Param("userId") Long userId);
+
+    // Day 19 — Fetch all tasks with user (avoid N+1)
+    @Query(
+            value = """
+            SELECT t FROM Task t
+            JOIN FETCH t.user
+        """,
+            countQuery = "SELECT COUNT(t) FROM Task t"
+    )
+    Page<Task> findTasksWithUser(Pageable pageable);
 }

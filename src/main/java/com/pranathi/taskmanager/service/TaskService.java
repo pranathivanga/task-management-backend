@@ -76,7 +76,8 @@ public class TaskService {
         }
 
         // No filters
-        return taskRepository.findAll(pageable);
+        return taskRepository.findTasksWithUser(pageable);
+
     }
 
     public Task updateTask(Long taskId, String status, String description) {

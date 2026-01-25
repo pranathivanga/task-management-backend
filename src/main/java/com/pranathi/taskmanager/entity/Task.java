@@ -1,11 +1,13 @@
 package com.pranathi.taskmanager.entity;
 
 import jakarta.persistence.*;
+import org.hibernate.annotations.BatchSize;
 
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "tasks")
+@BatchSize(size = 10)
 public class Task {
 
     @Id
@@ -20,6 +22,7 @@ public class Task {
 
     @Column(nullable = false, length = 30)
     private String status;
+
 
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)

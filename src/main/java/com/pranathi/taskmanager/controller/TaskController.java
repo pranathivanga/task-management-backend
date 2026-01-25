@@ -23,11 +23,11 @@ import java.util.List;
 @RestController
 @RequestMapping("/tasks")
 public class TaskController {
-    private static final Logger logger =
-            LoggerFactory.getLogger(TaskController.class);
+    private static final Logger logger = LoggerFactory.getLogger(TaskController.class);
     private final TaskService taskService;
 
     public TaskController(TaskService taskService) {
+
         this.taskService = taskService;
     }
 
@@ -52,14 +52,10 @@ public class TaskController {
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) String status,
             @RequestParam(required = false) Long userId,
-            @PageableDefault(size = 5, sort = "createdAt", direction = Sort.Direction.DESC)
-            Pageable pageable) {
+            @PageableDefault(size = 5, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
 
         return ResponseEntity.ok(
-                new ApiResponse<>(
-                        "Tasks fetched",
-                        taskService.getAllTasks(keyword, status, userId, pageable)
-                )
+                new ApiResponse<>("Tasks fetched", taskService.getAllTasks(keyword, status, userId, pageable))
         );
     }
 
