@@ -21,7 +21,7 @@ import java.util.List;
 
 
 @RestController
-@RequestMapping("/tasks")
+@RequestMapping("/api/v1/tasks")
 public class TaskController {
     private static final Logger logger = LoggerFactory.getLogger(TaskController.class);
     private final TaskService taskService;
@@ -41,7 +41,8 @@ public class TaskController {
                 request.getTitle(),
                 request.getDescription(),
                 request.getStatus(),
-                request.getUserId()
+                request.getUserId(),
+                request.getIdempotencyKey()
         );
 
         return ResponseEntity.status(HttpStatus.CREATED)

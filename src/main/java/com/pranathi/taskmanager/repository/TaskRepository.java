@@ -9,6 +9,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface TaskRepository extends JpaRepository<Task, Long> {
@@ -47,4 +48,6 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
             countQuery = "SELECT COUNT(t) FROM Task t"
     )
     Page<Task> findTasksWithUser(Pageable pageable);
+
+    Optional<Task> findByIdempotencyKey(String idempotencyKey);
 }

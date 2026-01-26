@@ -50,4 +50,14 @@ public class TaskCreateRequest {
     public void setUserId(Long userId) {
         this.userId = userId;
     }
+    @NotBlank(message = "Idempotency key is required")
+    private String idempotencyKey;
+
+    public String getIdempotencyKey() {
+        return idempotencyKey;
+    }
+
+    public void setIdempotencyKey(String idempotencyKey) {
+        this.idempotencyKey = idempotencyKey;
+    }
 }

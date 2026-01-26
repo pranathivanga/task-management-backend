@@ -5,6 +5,7 @@ import com.pranathi.taskmanager.entity.User;
 import com.pranathi.taskmanager.exception.ResourceNotFoundException;
 import com.pranathi.taskmanager.repository.TaskRepository;
 import com.pranathi.taskmanager.repository.UserRepository;
+import jakarta.transaction.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
@@ -27,20 +28,25 @@ public class TaskService {
         this.taskRepository = taskRepository;
         this.userRepository = userRepository;
     }
+    @Transactional
+    public Task createTask(String title, String description, String status, Long userId, String idempotencyKey) {
 
-    public void createTask(String title, String description, String status, Long userId) {
+        taskRepository.findByIdempotencyKey(idempotencyKey)
+                .ifPresent(existing -> {
+                    throw new RuntimeException("Duplicate request blocked");
+                });
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
 
         Task task = new Task();
         task.setTitle(title);
         task.setDescription(description);
         task.setStatus(status);
-
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-
         task.setUser(user);
+        task.setIdempotencyKey(idempotencyKey);
 
-        taskRepository.save(task);
+        return taskRepository.save(task);
     }
 
     public Page<Task> getAllTasks(
@@ -79,7 +85,7 @@ public class TaskService {
         return taskRepository.findTasksWithUser(pageable);
 
     }
-
+@Transactional
     public Task updateTask(Long taskId, String status, String description) {
 
         Task task = taskRepository.findById(taskId)
@@ -93,6 +99,7 @@ public class TaskService {
 
         return taskRepository.save(task);
     }
+    @Transactional
     public void deleteTask(Long taskId) {
 
         Task task = taskRepository.findById(taskId)
