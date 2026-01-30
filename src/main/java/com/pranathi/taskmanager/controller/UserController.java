@@ -1,6 +1,7 @@
 package com.pranathi.taskmanager.controller;
 
 import com.pranathi.taskmanager.dto.ApiResponse;
+import com.pranathi.taskmanager.dto.LoginRequest;
 import com.pranathi.taskmanager.dto.UserCreateRequest;
 import com.pranathi.taskmanager.entity.User;
 import com.pranathi.taskmanager.service.UserService;
@@ -25,6 +26,7 @@ public class UserController {
         User user = new User();
         user.setName(request.getName());
         user.setEmail(request.getEmail());
+        user.setPassword(request.getPassword());
 
         userService.createUser(user);
 
@@ -38,5 +40,20 @@ public class UserController {
         return userService.getUserById(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
+    }
+    @PostMapping("/login")
+    public ResponseEntity<ApiResponse> login(@RequestBody LoginRequest request) {
+
+        String token = userService.login(
+                request.getEmail(),
+                request.getPassword()
+        );
+
+        if (token == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(new ApiResponse<>("Invalid email or password"));
+        }
+
+        return ResponseEntity.ok(new ApiResponse<>(token));
     }
 }
