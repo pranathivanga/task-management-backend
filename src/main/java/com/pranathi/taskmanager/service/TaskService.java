@@ -11,6 +11,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -23,71 +25,56 @@ public class TaskService {
             LoggerFactory.getLogger(TaskService.class);
 
     private final TaskRepository taskRepository;
-    private final UserRepository userRepository;
 
-    public TaskService(TaskRepository taskRepository,
-                       UserRepository userRepository) {
+    public TaskService(TaskRepository taskRepository) {
         this.taskRepository = taskRepository;
-        this.userRepository = userRepository;
     }
-    @Transactional
-    public Task createTask(String title, String description, String status, Long userId, String idempotencyKey) {
 
+    // 🔐 CORE HELPER — GET LOGGED-IN USER
+    private User getCurrentUser() {
+        Authentication authentication =
+                SecurityContextHolder.getContext().getAuthentication();
+
+        return (User) authentication.getPrincipal();
+    }
+
+    // ✅ CREATE TASK — USER OWNERSHIP ENFORCED
+    @Transactional
+    public Task createTask(
+            String title,
+            String description,
+            String status,
+            String idempotencyKey
+    ) {
+
+        // Idempotency protection
         taskRepository.findByIdempotencyKey(idempotencyKey)
                 .ifPresent(existing -> {
                     throw new RuntimeException("Duplicate request blocked");
                 });
 
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+        // 🔥 THIS IS THE IMPORTANT PART YOU ASKED ABOUT
+        User currentUser = getCurrentUser();
+        // why? → backend decides ownership, not client
 
         Task task = new Task();
         task.setTitle(title);
         task.setDescription(description);
         task.setStatus(status);
-        task.setUser(user);
+        task.setUser(currentUser);          // ✅ OWNER SET HERE
         task.setIdempotencyKey(idempotencyKey);
 
         return taskRepository.save(task);
     }
 
-    public Page<Task> getAllTasks(
-            String keyword,
-            String status,
-            Long userId,
-            Pageable pageable) {
-
-        boolean hasKeyword = keyword != null && !keyword.isBlank();
-        boolean hasStatus = status != null && !status.isBlank();
-        boolean hasUser = userId != null;
-
-        // All three filters
-        if (hasKeyword && hasStatus && hasUser) {
-            return taskRepository
-                    .findByTitleContainingIgnoreCaseAndStatusAndUser_Id(
-                            keyword, status, userId, pageable);
-        }
-
-        // Keyword only
-        if (hasKeyword) {
-            return taskRepository.findByTitleContainingIgnoreCase(keyword, pageable);
-        }
-
-        // Status only
-        if (hasStatus) {
-            return taskRepository.findByStatus(status, pageable);
-        }
-
-        // User only
-        if (hasUser) {
-            return taskRepository.findByUser_Id(userId, pageable);
-        }
-
-        // No filters
-        return taskRepository.findTasksWithUser(pageable);
-
+    // ✅ GET ONLY LOGGED-IN USER'S TASKS
+    public List<Task> getMyTasks() {
+        User currentUser = getCurrentUser();
+        return taskRepository.findByUser(currentUser);
     }
-@Transactional
+
+    // ⚠️ UPDATE TASK (ownership check comes Day 13)
+    @Transactional
     public Task updateTask(Long taskId, String status, String description) {
 
         Task task = taskRepository.findById(taskId)
@@ -101,6 +88,8 @@ public class TaskService {
 
         return taskRepository.save(task);
     }
+
+    // ⚠️ DELETE TASK (ownership check comes Day 13)
     @Transactional
     public void deleteTask(Long taskId) {
 
@@ -109,8 +98,4 @@ public class TaskService {
 
         taskRepository.delete(task);
     }
-    public List<Task> getTasksWithUser(Long userId) {
-        return taskRepository.findTasksWithUser(userId);
-    }
-
 }

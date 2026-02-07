@@ -16,8 +16,7 @@ public class TaskCreateRequest {
     @NotBlank(message = "Status cannot be empty")
     private String status;
 
-    @NotNull(message = "User ID is required")
-    private Long userId;
+
 
     public String getTitle() {
         return title;
@@ -43,13 +42,6 @@ public class TaskCreateRequest {
         this.status = status;
     }
 
-    public Long getUserId() {
-        return userId;
-    }
-
-    public void setUserId(Long userId) {
-        this.userId = userId;
-    }
     @NotBlank(message = "Idempotency key is required")
     private String idempotencyKey;
 
