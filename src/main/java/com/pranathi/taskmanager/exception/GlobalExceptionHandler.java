@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
     private static final Logger logger =
             LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
@@ -22,7 +23,13 @@ public class GlobalExceptionHandler {
                 .body(new ApiResponse(ex.getMessage()));
     }
 
-    // 1️⃣ Validation errors (@Valid)
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<ApiResponse> handleAccessDenied(AccessDeniedException ex) {
+        return ResponseEntity
+                .status(HttpStatus.FORBIDDEN)
+                .body(new ApiResponse(ex.getMessage()));
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiResponse> handleValidation(MethodArgumentNotValidException ex) {
 
@@ -37,7 +44,6 @@ public class GlobalExceptionHandler {
                 .body(new ApiResponse(error));
     }
 
-    // 2️⃣ Business logic errors
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ErrorResponse> handleIllegalArgument(
             IllegalArgumentException ex) {
@@ -48,10 +54,10 @@ public class GlobalExceptionHandler {
         return ResponseEntity.badRequest().body(error);
     }
 
-    // 3️⃣ Fallback (unexpected errors)
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGeneric(Exception ex) {
         logger.error("Unhandled exception occurred", ex);
+
         ErrorResponse error =
                 new ErrorResponse(
                         "Something went wrong",

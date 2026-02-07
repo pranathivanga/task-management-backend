@@ -2,6 +2,7 @@ package com.pranathi.taskmanager.service;
 
 import com.pranathi.taskmanager.entity.Task;
 import com.pranathi.taskmanager.entity.User;
+import com.pranathi.taskmanager.exception.AccessDeniedException;
 import com.pranathi.taskmanager.exception.ResourceNotFoundException;
 import com.pranathi.taskmanager.repository.TaskRepository;
 import com.pranathi.taskmanager.repository.UserRepository;
@@ -80,14 +81,21 @@ public class TaskService {
         Task task = taskRepository.findById(taskId)
                 .orElseThrow(() -> new ResourceNotFoundException("Task not found"));
 
-        task.setStatus(status);
+        User currentUser = getCurrentUser();
 
+        // 🔐 AUTHORIZATION CHECK
+        if (!task.getUser().getId().equals(currentUser.getId())) {
+            throw new AccessDeniedException("You are not allowed to update this task");
+        }
+
+        task.setStatus(status);
         if (description != null) {
             task.setDescription(description);
         }
 
         return taskRepository.save(task);
     }
+
 
     // ⚠️ DELETE TASK (ownership check comes Day 13)
     @Transactional
@@ -96,6 +104,14 @@ public class TaskService {
         Task task = taskRepository.findById(taskId)
                 .orElseThrow(() -> new ResourceNotFoundException("Task not found"));
 
+        User currentUser = getCurrentUser();
+
+        // 🔐 AUTHORIZATION CHECK
+        if (!task.getUser().getId().equals(currentUser.getId())) {
+            throw new AccessDeniedException("You are not allowed to delete this task");
+        }
+
         taskRepository.delete(task);
     }
+
 }
