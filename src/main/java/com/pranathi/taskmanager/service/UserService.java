@@ -52,4 +52,9 @@ private final PasswordEncoder passwordEncoder;
         return jwtService.generateToken(user.getEmail());
 
     }
+    public User loadUserByEmail(String email) {
+        return userRepository.findByEmail(email)
+                .orElse(null);
+    }
+
 }

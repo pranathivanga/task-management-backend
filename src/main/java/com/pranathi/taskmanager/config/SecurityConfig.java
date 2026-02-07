@@ -1,6 +1,7 @@
 package com.pranathi.taskmanager.config;
 import com.pranathi.taskmanager.Jwt.JwtAuthenticationFilter;
 import com.pranathi.taskmanager.Jwt.JwtService;
+import com.pranathi.taskmanager.service.UserService;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -24,7 +25,7 @@ public class SecurityConfig {
     };
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http,JwtService jwtService) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http,JwtService jwtService, UserService userService) throws Exception {
         http
                 // 1. Disable CSRF for REST API
                 .csrf(csrf -> csrf.disable())
@@ -46,7 +47,7 @@ public class SecurityConfig {
                         .requestMatchers(PUBLIC_URLS).permitAll()
                         .anyRequest().authenticated()
                 );
-        http.addFilterBefore(jwtAuthenticationFilter(jwtService), UsernamePasswordAuthenticationFilter.class);
+        http.addFilterBefore(jwtAuthenticationFilter(jwtService,userService), UsernamePasswordAuthenticationFilter.class);
 
 
         return http.build();
@@ -57,8 +58,10 @@ public class SecurityConfig {
         return new BCryptPasswordEncoder();
     }
     @Bean
-    public JwtAuthenticationFilter jwtAuthenticationFilter(JwtService jwtService) {
-        return new JwtAuthenticationFilter(jwtService);
+    public JwtAuthenticationFilter jwtAuthenticationFilter(
+            JwtService jwtService,
+            UserService userService) {
+        return new JwtAuthenticationFilter(jwtService, userService);
     }
 
 }
